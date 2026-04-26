@@ -23,14 +23,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    @ExceptionHandler(CategoryNotFoundException.class)
-    public ResponseEntity<ApiError> handleCategoryNotFoundException(CategoryNotFoundException exception) {
-
-        logger.warn("Category not found: {}", exception.getMessage());
-        ApiError error = new ApiError(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(), exception.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
 

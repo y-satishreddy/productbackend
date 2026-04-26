@@ -5,16 +5,21 @@ import com.skylimit.Skylimit.entity.Product;
 import com.skylimit.Skylimit.exception.ProductNotFoundException;
 import com.skylimit.Skylimit.mapper.ProductMapper;
 import com.skylimit.Skylimit.repository.ProductRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+import java.util.Map;
 
 @Service
+
 public class ProductServiceImpl implements ProductService {
+    private final RestClient restClient;
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
-
-    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper) {
-        this.productRepository = productRepository;
-        this.productMapper = productMapper;
+    public ProductServiceImpl(RestClient.Builder builder,ProductRepository productRepository,ProductMapper productMapper) {
+        this.restClient=builder.build();
+        this.productRepository=productRepository;
+        this.productMapper=productMapper;
     }
 
     public ProductAddProductResponseDTO saveProduct(ProductAddProductRequestDTO productDTO) {
@@ -93,6 +98,19 @@ public class ProductServiceImpl implements ProductService {
         repoProduct.setActive(productUpdateRequest.getActive());
         repoProduct.setFeatured(productUpdateRequest.getFeatured());
         Product response=productRepository.save(repoProduct);
+        Map<String, Object> body = Map.of(
+                "productId", 1,
+                "eventType", "PRODUCT_UPDATED",
+                "message", "product is updated successfully"
+        );
+        String result = restClient.post()
+                .uri("http://localhost:8081/api/external/products")
+                .header("correlationId", "my-secret-key")
+                .body(body)
+                .retrieve()
+                .body(String.class);
+        System.out.println("✅ Response: " + response);
+
         return productMapper.toGetDetailsResponse(response);
     }
 
